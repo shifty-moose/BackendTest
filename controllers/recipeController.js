@@ -1,4 +1,4 @@
-import pool from './pool.js';
+import pool from '../db/pool.js';
 
 export const getAllRecipes = (req, res) => {
     pool.query('SELECT * FROM recipes', (error, results) => {
