@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllRecipes, getRecipeById } from "./recipeController.js";
+import { getAllRecipes, getRecipeById } from "../controllers/recipeController.js";
 
 const recipeRouter = Router();
 
