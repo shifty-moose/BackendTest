@@ -11,12 +11,28 @@ export const getAllRecipes = (req, res) => {
 };
 
 export const getRecipeById = (req, res) => {
+
     const id = parseInt(req.params.id);
-    pool.query('SELECT * FROM recipes WHERE id = $1', [id], (error, results) => {
+
+    const query = `
+        SELECT
+            recipes.*,
+            ingredients.*,
+            methods.*
+        FROM
+            recipes
+        LEFT JOIN
+            ingredients ON recipes.id = ingredients.recipeid
+        LEFT JOIN
+            methods ON recipes.id = methods.recipeid
+        WHERE
+            recipes.id = $1
+    `;
+
+    pool.query(query, [id], (error, results) => {
         if (error) {
             throw error;
         }
-        console.log(results.rows);
         res.status(200).json(results.rows);
     });
 };

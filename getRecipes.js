@@ -8,7 +8,7 @@ const getReceipes = async () => {
     
         const entries = await response.json();
         console.log(entries);
-        } catch (error) {
+    } catch (error) {
         console.error(`Error fetching data: ${error}`);
     }
 };
