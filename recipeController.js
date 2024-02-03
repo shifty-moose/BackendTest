@@ -14,18 +14,40 @@ export const getRecipeById = (req, res) => {
     const id = parseInt(req.params.id);
 
     const query = `
+
+    WITH ingredients AS (
+        SELECT 
+         recipeid, 
+         ARRAY_AGG(ingredients) AS ingredients_arr
+        FROM ingredients
+        GROUP BY recipeid
+      ),
+      
+        methods AS (
+            SELECT
+            recipeid,
+            ARRAY_AGG(todo) AS methods_arr
+            FROM methods
+            GROUP BY recipeid
+        )
+
         SELECT
-            recipes.*,
-            ingredients.*,
-            methods.*
-        FROM
-            recipes
-        LEFT JOIN
-            ingredients ON recipes.id = ingredients.recipeid
-        LEFT JOIN
-            methods ON recipes.id = methods.recipeid
-        WHERE
-            recipes.id = $1
+        recipes.id,
+        recipes.title,
+        recipes.pictureurl,
+        recipes.subheading,
+        recipes.description,
+        recipes.type,
+        recipes.preptimeinminutes,
+        ingredients.ingredients_arr,
+        methods.methods_arr
+        FROM recipes AS recipes
+        LEFT JOIN ingredients AS ingredients
+            ON recipes.id = ingredients.recipeid
+        LEFT JOIN methods AS methods
+            ON recipes.id = methods.recipeid
+        WHERE recipes.id = $1
+        ORDER BY recipes.id;
     `;
 
     pool.query(query, [id], (error, results) => {
