@@ -57,3 +57,14 @@ export const getRecipeById = (req, res) => {
         res.status(200).json(results.rows);
     });
 };
+
+export const createRecipe = (req, res) => {
+    const { title, pictureurl, subheading, description, type, preptimeinminutes } = req.body;
+
+    pool.query('INSERT INTO recipes (title, pictureurl, subheading, description, type, preptimeinminutes) VALUES ($1, $2, $3, $4, $5, $6)', [title, pictureurl, subheading, description, type, preptimeinminutes], (error, results) => {
+        if (error) {
+            throw error;
+        }
+        res.status(201).send(`Recipe added with ID: ${results.insertId}`);
+    });
+};
