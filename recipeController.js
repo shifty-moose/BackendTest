@@ -9,7 +9,7 @@ export const getAllRecipes = (req, res) => {
     });
 };
 
-export const getRecipeById = (req, res) => {
+export const getRecipeById = async (req, res) => {
 
     const id = parseInt(req.params.id);
 
@@ -59,12 +59,59 @@ export const getRecipeById = (req, res) => {
 };
 
 export const createRecipe = (req, res) => {
-    const { title, pictureurl, subheading, description, type, preptimeinminutes } = req.body;
+    const { title, pictureurl, subheading, description, type, preptimeinminutes, ingredients, method } = req.body;
 
-    pool.query('INSERT INTO recipes (title, pictureurl, subheading, description, type, preptimeinminutes) VALUES ($1, $2, $3, $4, $5, $6)', [title, pictureurl, subheading, description, type, preptimeinminutes], (error, results) => {
-        if (error) {
-            throw error;
+    pool.query(
+        'INSERT INTO recipes (title, pictureurl, subheading, description, type, preptimeinminutes) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+        [title, pictureurl, subheading, description, type, preptimeinminutes],
+        async (error, results) => {
+            if (error) {
+                return res.status(500).json({ message: 'Error adding reciefefe' });
+            }
+
+            const recipeId = results.rows[0].id;
+
+            const ingredientsPromise = ingredients.map((ingredient, index) => {
+                return new Promise((resolve, reject) => {
+                    pool.query(
+                        'INSERT INTO ingredients (ingredient_num, ingredients, recipeid) VALUES ($1, $2, $3)',
+                        [index + 1, ingredient, recipeId],
+                        (error) => {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                resolve();
+                            }  
+                        }
+                    );
+                });
+            });
+
+            const methodsPromise = method.map((todo, index) => {
+                return new Promise((resolve, reject) => {
+                    pool.query(
+                        'INSERT INTO methods (steps, todo, recipeid) VALUES ($1, $2, $3)',
+                        [index + 1, todo, recipeId],
+                        (error) => {
+                            if (error) {
+                                reject(error);
+                            } else {
+                                resolve();
+                            }
+                        }
+                    );
+                });
+            });
+
+            try {
+                await Promise.all( [...ingredientsPromise, ...methodsPromise] );
+                res.status(201).json({ message: `Recipe added with ID: ${recipeId}` });
+            } catch (error) {
+                res.status(500).json({ message: 'Error adding recieeeeepe' });
+            };
+
+
+
         }
-        res.status(201).send(`Recipe added with ID: ${results.insertId}`);
-    });
+    );
 };
